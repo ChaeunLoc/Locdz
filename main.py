@@ -2,8 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from langchain.agents import AgentType, initialize_agent
-from langchain.tools import Tool
-from langchain_community.utilities import SerpAPIWrapper
+from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_openai import ChatOpenAI
 
 
@@ -11,26 +10,19 @@ def build_agent():
     load_dotenv()
 
     openai_api_key = os.getenv("OPENAI_API_KEY")
-    serpapi_api_key = os.getenv("SERPAPI_API_KEY")
+    tavily_api_key = os.getenv("TAVILY_API_KEY")
 
     if not openai_api_key:
         raise ValueError("Missing OPENAI_API_KEY in .env")
-    if not serpapi_api_key:
-        raise ValueError("Missing SERPAPI_API_KEY in .env")
+    if not tavily_api_key:
+        raise ValueError("Missing TAVILY_API_KEY in .env")
 
     llm = ChatOpenAI(
         model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         temperature=0,
     )
 
-    search = SerpAPIWrapper()
-    tools = [
-        Tool(
-            name="google_search",
-            func=search.run,
-            description="Use this tool to search up-to-date information on Google.",
-        )
-    ]
+    tools = [TavilySearchResults(max_results=5)]
 
     agent = initialize_agent(
         tools=tools,
